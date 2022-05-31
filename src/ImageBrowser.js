@@ -6,10 +6,9 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native'
-import * as ScreenOrientation from 'expo-screen-orientation';
-import * as ImagePicker from 'expo-image-picker'
+// import * as ScreenOrientation from 'expo-screen-orientation';
 import * as MediaLibrary from 'expo-media-library'
-
+import {PermissionStatus} from 'expo-media-library'
 import ImageTile from './ImageTile'
 
 const {width} = Dimensions.get('window');
@@ -20,7 +19,7 @@ export default class ImageBrowser extends React.Component {
     loadCount: 50,
     emptyStayComponent: null,
     preloaderComponent: <ActivityIndicator size='large'/>,
-    mediaType: [MediaLibrary.MediaType.photo]
+    mediaType: [MediaLibrary.MediaType.photo],
   }
 
   state = {
@@ -31,45 +30,53 @@ export default class ImageBrowser extends React.Component {
     selected: [],
     isEmpty: false,
     after: null,
-    hasNextPage: true
+    hasNextPage: true,
+    hasStoragePermission: false
   }
 
   async componentDidMount() {
     await this.getPermissionsAsync();
-    ScreenOrientation.addOrientationChangeListener(this.onOrientationChange);
-    const orientation = await ScreenOrientation.getOrientationAsync();
-    const numColumns = this.getNumColumns(orientation);
-    this.setState({numColumns});
+    // ScreenOrientation.addOrientationChangeListener(this.onOrientationChange);
+    // const orientation = await ScreenOrientation.getOrientationAsync();
+    // const numColumns = this.getNumColumns(orientation);
+    this.setState({numColumns: 4});
     this.getPhotos();
   }
 
-  componentWillUnmount() {
-    ScreenOrientation.removeOrientationChangeListeners()
-  }
-
   getPermissionsAsync = async () => {
-    const { status: camera } = await ImagePicker.requestCameraPermissionsAsync()
-    const { status: cameraRoll } = await ImagePicker.requestMediaLibraryPermissionsAsync()
-    this.setState({
-      hasCameraPermission: camera === 'granted',
-      hasCameraRollPermission: cameraRoll === 'granted'
-    });
+    const mediaPermission = await MediaLibrary.requestPermissionsAsync()
+    if(mediaPermission.status !== PermissionStatus.DENIED || mediaPermission.status !== PermissionStatus.UNDETERMINED){
+      this.setState({
+        hasStoragePermission: true,
+      });  
+    } else {
+      this.setState({
+        hasStoragePermission: false,
+      });  
+    }
+    // const {status: camera} = await Permissions.askAsync(Permissions.CAMERA);
+    // const {status: cameraRoll} = await Permissions.askAsync(Permissions.MEDIA_LIBRARY);
+    // this.setState({
+    //   hasCameraPermission: camera === 'granted',
+    //   hasCameraRollPermission: cameraRoll === 'granted'
+    // });
   }
 
-  onOrientationChange = ({orientationInfo}) => {
-    ScreenOrientation.removeOrientationChangeListeners();
-    ScreenOrientation.addOrientationChangeListener(this.onOrientationChange);
-    const numColumns = this.getNumColumns(orientationInfo.orientation);
-    this.setState({numColumns});
-  }
+  // onOrientationChange = ({orientationInfo}) => {
+  //   ScreenOrientation.removeOrientationChangeListeners();
+  //   ScreenOrientation.addOrientationChangeListener(this.onOrientationChange);
+  //   const numColumns = this.getNumColumns(orientationInfo.orientation);
+  //   this.setState({numColumns});
+  // }
 
-  getNumColumns = orientation => {
-    const {PORTRAIT_UP, PORTRAIT_DOWN} = ScreenOrientation.Orientation;
-    const isPortrait = orientation === PORTRAIT_UP || orientation === PORTRAIT_DOWN;
-    return isPortrait ? 4 : 7;
-  }
+  // getNumColumns = orientation => {
+  //   const {PORTRAIT_UP, PORTRAIT_DOWN} = ScreenOrientation.Orientation;
+  //   const isPortrait = orientation === PORTRAIT_UP || orientation === PORTRAIT_DOWN;
+  //   return isPortrait ? 4 : 7;
+  // }
 
   selectImage = (index) => {
+
     let newSelected = Array.from(this.state.selected);
     if (newSelected.indexOf(index) === -1) {
       newSelected.push(index);
@@ -77,7 +84,10 @@ export default class ImageBrowser extends React.Component {
       const deleteIndex = newSelected.indexOf(index);
       newSelected.splice(deleteIndex, 1);
     }
-    if (newSelected.length > this.props.max) return;
+    if (newSelected.length > this.props.max) {
+      this.props.onMaximumSelection?.()
+      return;
+    }
     if (!newSelected) newSelected = []; 
     this.setState({selected: newSelected}, () =>{
       this.props.onChange(newSelected.length, () => this.prepareCallback());
@@ -166,8 +176,8 @@ export default class ImageBrowser extends React.Component {
   }
 
   render() {
-    const {hasCameraPermission} = this.state;
-    if (!hasCameraPermission) return this.props.noCameraPermissionComponent || null;
+    const {hasStoragePermission} = this.state;
+    if (!hasStoragePermission) return this.props.noCameraPermissionComponent || null;
 
     return (
       <View style={styles.container}>
