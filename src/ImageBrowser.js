@@ -6,9 +6,10 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native'
-// import * as ScreenOrientation from 'expo-screen-orientation';
+
 import * as MediaLibrary from 'expo-media-library'
-import {PermissionStatus} from 'expo-media-library'
+
+
 import ImageTile from './ImageTile'
 
 const {width} = Dimensions.get('window');
@@ -35,45 +36,9 @@ export default class ImageBrowser extends React.Component {
   }
 
   async componentDidMount() {
-    await this.getPermissionsAsync();
-    // ScreenOrientation.addOrientationChangeListener(this.onOrientationChange);
-    // const orientation = await ScreenOrientation.getOrientationAsync();
-    // const numColumns = this.getNumColumns(orientation);
     this.setState({numColumns: 4});
     this.getPhotos();
   }
-
-  getPermissionsAsync = async () => {
-    const mediaPermission = await MediaLibrary.requestPermissionsAsync()
-    if(mediaPermission.status !== PermissionStatus.DENIED || mediaPermission.status !== PermissionStatus.UNDETERMINED){
-      this.setState({
-        hasStoragePermission: true,
-      });  
-    } else {
-      this.setState({
-        hasStoragePermission: false,
-      });  
-    }
-    // const {status: camera} = await Permissions.askAsync(Permissions.CAMERA);
-    // const {status: cameraRoll} = await Permissions.askAsync(Permissions.MEDIA_LIBRARY);
-    // this.setState({
-    //   hasCameraPermission: camera === 'granted',
-    //   hasCameraRollPermission: cameraRoll === 'granted'
-    // });
-  }
-
-  // onOrientationChange = ({orientationInfo}) => {
-  //   ScreenOrientation.removeOrientationChangeListeners();
-  //   ScreenOrientation.addOrientationChangeListener(this.onOrientationChange);
-  //   const numColumns = this.getNumColumns(orientationInfo.orientation);
-  //   this.setState({numColumns});
-  // }
-
-  // getNumColumns = orientation => {
-  //   const {PORTRAIT_UP, PORTRAIT_DOWN} = ScreenOrientation.Orientation;
-  //   const isPortrait = orientation === PORTRAIT_UP || orientation === PORTRAIT_DOWN;
-  //   return isPortrait ? 4 : 7;
-  // }
 
   selectImage = (index) => {
 
@@ -176,9 +141,6 @@ export default class ImageBrowser extends React.Component {
   }
 
   render() {
-    const {hasStoragePermission} = this.state;
-    if (!hasStoragePermission) return this.props.noCameraPermissionComponent || null;
-
     return (
       <View style={styles.container}>
         {this.renderImages()}
