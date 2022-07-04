@@ -1,8 +1,6 @@
 import React from 'react'
 import { StyleSheet, View, FlatList, Dimensions, ActivityIndicator, Text } from 'react-native'
-import * as ScreenOrientation from 'expo-screen-orientation'
 import * as MediaLibrary from 'expo-media-library'
-import * as Permissions from 'expo-permissions'
 import ImageTile from './ImageTile'
 import ImageAlbumTile from './ImageAlbumTile'
 import { getAlbumAsync, getAlbumsAsync, getAssetsAsync } from 'expo-media-library/src/MediaLibrary'
@@ -12,7 +10,6 @@ import Icon from '@components/icons/Icon'
 import { Fonts } from '../../../src/config/keys'
 
 const { width } = Dimensions.get('window')
-
 export default class AlbumBrowser extends React.Component {
   static defaultProps = {
     loadCompleteMetadata: false,
@@ -45,34 +42,8 @@ export default class AlbumBrowser extends React.Component {
   }
 
   async componentDidMount() {
-    await this.getPermissionsAsync()
-    ScreenOrientation.addOrientationChangeListener(this.onOrientationChange)
-    const orientation = await ScreenOrientation.getOrientationAsync()
-    const numColumns = this.getNumColumns(orientation)
-    this.setState({ numColumns })
+    this.setState({ numColumns: 4 })
     this.getPhotos()
-  }
-
-  getPermissionsAsync = async () => {
-    const { status: camera } = await Permissions.askAsync(Permissions.CAMERA)
-    const { status: cameraRoll } = await Permissions.askAsync(Permissions.MEDIA_LIBRARY)
-    this.setState({
-      hasCameraPermission: camera === 'granted',
-      hasCameraRollPermission: cameraRoll === 'granted',
-    })
-  }
-
-  onOrientationChange = ({ orientationInfo }) => {
-    ScreenOrientation.removeOrientationChangeListeners()
-    ScreenOrientation.addOrientationChangeListener(this.onOrientationChange)
-    const numColumns = this.getNumColumns(orientationInfo.orientation)
-    this.setState({ numColumns })
-  }
-
-  getNumColumns = (orientation) => {
-    const { PORTRAIT_UP, PORTRAIT_DOWN } = ScreenOrientation.Orientation
-    const isPortrait = orientation === PORTRAIT_UP || orientation === PORTRAIT_DOWN
-    return isPortrait ? 3 : 6
   }
 
   selectImageAlbum = (item) => {
@@ -86,23 +57,6 @@ export default class AlbumBrowser extends React.Component {
   }
 
   selectImage = (index) => {
-    // let newSelected = Array.from(this.state.selected)
-    // if (newSelected.indexOf(index) === -1) {
-    //   newSelected.push(index)
-    // } else {
-    //   const deleteIndex = newSelected.indexOf(index)
-    //   newSelected.splice(deleteIndex, 1)
-    // }
-    // if (newSelected.length > this.props.max) {
-    //   this.props.onMaximumSelection?.()
-    //   return
-    // }
-    // if (!newSelected) newSelected = []
-    // alert(JSON.stringify(newSelected))
-    // this.setState({ selected: newSelected }, () => {
-    //   this.props.onChange(newSelected.length, () => this.prepareCallback())
-    // })
-
     let newSelected = Array.from(this.state.selectedWithAlbum)
     let value = this.state.selectedWithAlbum.find((v) => v.id === this.state.selectedAlbum.id && v.index === index)
     if (!value) {
@@ -124,7 +78,6 @@ export default class AlbumBrowser extends React.Component {
     this.setState({ selectedWithAlbum: newSelected }, () => {
       this.props.onChange(newSelected.length, () => this.prepareCallback())
     })
-    // let newSelected = Array.from(this.state.selected)
   }
 
   getPhotosDetail = async (item) => {
@@ -191,7 +144,6 @@ export default class AlbumBrowser extends React.Component {
       this.setState({ isEmpty: true })
       data = data.filter((i) => i.assetCount > 1)
       this.setState({ albumList: data })
-      // this.getPhotosSingle({"assetCount":88,"title":"Screenshots","type":null,"id":"-1313584517"}, 0)
       for (let i = 0; i < data.length; i++) {
         this.getPhotosSingle(data[i], i)
       }
@@ -288,6 +240,7 @@ export default class AlbumBrowser extends React.Component {
       </View>
     )
   }
+
   renderPreloader = () => this.props.preloaderComponent
 
   renderEmptyStay = () => this.props.emptyStayComponent
@@ -295,6 +248,7 @@ export default class AlbumBrowser extends React.Component {
   renderFooter = () => {
     return <View style={{ width: '100%', height: 150 }} />
   }
+
   renderImages() {
     return (
       <FlatList
@@ -382,9 +336,6 @@ export default class AlbumBrowser extends React.Component {
   }
 
   render() {
-    const { hasCameraPermission } = this.state
-    if (!hasCameraPermission) return this.props.noCameraPermissionComponent || null
-
     return <View style={styles.container}>{!this.state.isAlbumList ? this.renderImages() : this.renderAlbum()}</View>
   }
 }

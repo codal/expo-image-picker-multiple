@@ -1,15 +1,9 @@
 import React from 'react'
-import { StyleSheet, View, FlatList, Dimensions, ActivityIndicator, Text } from 'react-native'
-import * as ScreenOrientation from 'expo-screen-orientation'
+import { StyleSheet, View, FlatList, Dimensions, ActivityIndicator } from 'react-native'
 import * as MediaLibrary from 'expo-media-library'
-import * as Permissions from 'expo-permissions'
 import ImageTile from './ImageTile'
-import Icon from '@components/icons/Icon'
-import { Fonts } from '../../../src/config/keys'
-import { Colors, Measurement } from '@config/keys'
 
 const { width } = Dimensions.get('window')
-
 export default class ImageBrowser extends React.Component {
   static defaultProps = {
     loadCompleteMetadata: false,
@@ -28,37 +22,12 @@ export default class ImageBrowser extends React.Component {
     isEmpty: false,
     after: null,
     hasNextPage: true,
+    hasStoragePermission: false,
   }
 
   async componentDidMount() {
-    await this.getPermissionsAsync()
-    ScreenOrientation.addOrientationChangeListener(this.onOrientationChange)
-    const orientation = await ScreenOrientation.getOrientationAsync()
-    const numColumns = this.getNumColumns(orientation)
-    this.setState({ numColumns })
+    this.setState({ numColumns: 3 })
     this.getPhotos()
-  }
-
-  getPermissionsAsync = async () => {
-    const { status: camera } = await Permissions.askAsync(Permissions.CAMERA)
-    const { status: cameraRoll } = await Permissions.askAsync(Permissions.MEDIA_LIBRARY)
-    this.setState({
-      hasCameraPermission: camera === 'granted',
-      hasCameraRollPermission: cameraRoll === 'granted',
-    })
-  }
-
-  onOrientationChange = ({ orientationInfo }) => {
-    ScreenOrientation.removeOrientationChangeListeners()
-    ScreenOrientation.addOrientationChangeListener(this.onOrientationChange)
-    const numColumns = this.getNumColumns(orientationInfo.orientation)
-    this.setState({ numColumns })
-  }
-
-  getNumColumns = (orientation) => {
-    const { PORTRAIT_UP, PORTRAIT_DOWN } = ScreenOrientation.Orientation
-    const isPortrait = orientation === PORTRAIT_UP || orientation === PORTRAIT_DOWN
-    return isPortrait ? 3 : 6
   }
 
   selectImage = (index) => {
@@ -144,11 +113,12 @@ export default class ImageBrowser extends React.Component {
   renderFooter = () => {
     return <View style={{ width: '100%', height: 150 }} />
   }
+
   renderImages() {
     return (
       <FlatList
         data={this.state.photos}
-        numColumns={this.state.numColumns}
+        numColumns={3}
         key={this.state.numColumns}
         renderItem={this.renderImageTile}
         keyExtractor={(_, index) => index}
@@ -189,9 +159,6 @@ export default class ImageBrowser extends React.Component {
   }
 
   render() {
-    const { hasCameraPermission } = this.state
-    if (!hasCameraPermission) return this.props.noCameraPermissionComponent || null
-
     return <View style={styles.container}>{this.renderImages()}</View>
   }
 }

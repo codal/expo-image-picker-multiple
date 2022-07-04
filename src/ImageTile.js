@@ -2,7 +2,6 @@ import React from 'react'
 import { Dimensions, ImageBackground, TouchableHighlight, View, Text } from 'react-native'
 import { Colors } from '../../../src/config/keys'
 import Icon from '../../../src/components/icons/Icon'
-import { styles } from '../../../src/components/input/MediaPicker/MediaGallery/styles'
 
 const { width } = Dimensions.get('window')
 const renderTime = (value) => {
@@ -23,14 +22,12 @@ const renderTime = (value) => {
 
   return hours > 0 ? `${hours}:${minutes}:${seconds}` : `${minutes}:${seconds}`
 }
-
 class ImageTile extends React.PureComponent {
   render() {
     const { item, index, selected, selectImage, selectedItemNumber, renderSelectedComponent, renderExtraComponent } =
       this.props
     if (!item) return null
     const { mediaType, duration = '' } = item
-
     return (
       <TouchableHighlight underlayColor='transparent' onPress={() => selectImage(index)}>
         <View style={{ position: 'relative', padding: 4 }}>
@@ -58,11 +55,12 @@ class ImageTile extends React.PureComponent {
               }}
               source={{ uri: item.uri }}
             >
+              {selected && renderSelectedComponent && renderSelectedComponent(selectedItemNumber)}
               {renderExtraComponent && renderExtraComponent(item)}
             </ImageBackground>
             {mediaType == 'video' && (
               <View style={{ position: 'absolute', zIndex: 1 }}>
-                <Icon name='SolidPlay' height={16} width={16} fill={Colors.White} style={styles.videoPlayIcon} />
+                <Icon name='SolidPlay' height={16} width={16} fill={Colors.White} style={{ alignSelf: 'center' }} />
               </View>
             )}
             {selected && renderSelectedComponent && renderSelectedComponent(selectedItemNumber)}
