@@ -146,7 +146,7 @@ export default class AlbumBrowser extends React.Component {
       }
     } else {
       this.setState({ isEmpty: true })
-      data = data.filter((i) => i.assetCount > 1)
+      data = data.filter((i) => i.assetCount > 0)
       this.setState({ albumList: data })
       for (let i = 0; i < data.length; i++) {
         this.getPhotosSingle(data[i], i)
