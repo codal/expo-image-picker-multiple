@@ -3,7 +3,6 @@ import { StyleSheet, View, FlatList, Dimensions, ActivityIndicator, Text } from 
 import * as MediaLibrary from 'expo-media-library'
 import ImageTile from './ImageTile'
 import ImageAlbumTile from './ImageAlbumTile'
-import { getAlbumAsync, getAlbumsAsync, getAssetsAsync } from 'expo-media-library/src/MediaLibrary'
 import TextStyles from '@components/micro/TextStyles'
 import { Colors, Measurement } from '@config/keys'
 import Icon from '@components/icons/Icon'
@@ -35,7 +34,6 @@ export default class AlbumBrowser extends React.Component {
   }
 
   UNSAFE_componentWillReceiveProps(newProps) {
-    console.log('Component is receiving new props', newProps.inDetailAlbum)
     if (newProps.inDetailAlbum !== undefined && !newProps.inDetailAlbum) {
       this.setState({ isAlbumList: true, after: null, hasNextPage: true, photos: [], isEmpty: false, selected: [] })
     }
@@ -45,7 +43,6 @@ export default class AlbumBrowser extends React.Component {
     this.setState({ numColumns: 4 })
     this.getPhotos()
   }
-
   selectImageAlbum = (item) => {
     this.setState({ isAlbumList: false }, () => {
       this.props.setInDetailAlbum(true)
@@ -113,16 +110,23 @@ export default class AlbumBrowser extends React.Component {
         sortBy: [MediaLibrary.SortBy.creationTime],
       }
 
-      const getAlbum = await MediaLibrary.getAssetsAsync(params)
-
       MediaLibrary.getAssetsAsync(params).then((res) => {
         data.assets = res.assets
         data.getPhotos = getPhotos
         const value = this.state.albumList
-        value[index] = data
-        this.setState({
-          albumList: value,
-        })
+        if(value[index]?.assets?.length){
+          value[index] = data
+          this.setState({
+            albumList: value,
+          },()=>{
+            const newTempAlbumData = this.state.albumList.filter((item)=>{
+              return item.assets != 0
+            })
+            this.setState({
+              albumList: newTempAlbumData,
+            })
+          })
+        }
       })
     }
   }
