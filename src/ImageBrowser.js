@@ -111,7 +111,7 @@ export default class ImageBrowser extends React.Component {
   renderEmptyStay = () => this.props.emptyStayComponent
 
   renderFooter = () => {
-    return <View style={{ width: '100%', height: 150 }} />
+    return <View style={{ width: '100%', height: this.props?.limitedPhotos ? 200 : 150 }} />
   }
 
   renderImages() {
