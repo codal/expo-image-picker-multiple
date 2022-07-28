@@ -31,18 +31,20 @@ export default class AlbumBrowser extends React.Component {
     hasNextPage: true,
     isAlbumList: true,
     albumList: [],
-  }
-
-  UNSAFE_componentWillReceiveProps(newProps) {
-    if (newProps.inDetailAlbum !== undefined && !newProps.inDetailAlbum) {
-      this.setState({ isAlbumList: true, after: null, hasNextPage: true, photos: [], isEmpty: false, selected: [] })
-    }
+    processing: false
   }
 
   async componentDidMount() {
     this.setState({ numColumns: 4 })
     this.getPhotos()
   }
+
+   UNSAFE_componentWillReceiveProps(newProps) {
+    if (newProps.inDetailAlbum !== undefined && !newProps.inDetailAlbum) {
+      this.setState({ isAlbumList: true, processing: true, after: null, hasNextPage: true, photos: [], isEmpty: false, selected: []})
+    }
+  }
+
   selectImageAlbum = (item) => {
     this.setState({ isAlbumList: false }, () => {
       this.props.setInDetailAlbum(true)
@@ -82,7 +84,7 @@ export default class AlbumBrowser extends React.Component {
       first: this.props.loadCount,
       mediaType: this.props.mediaType,
       album: item.getPhotos,
-      sortBy: [MediaLibrary.SortBy.creationTime],
+      sortBy: [MediaLibrary.SortBy.modificationTime],
     }
     if (this.state.after) params.after = this.state.after
     if (!this.state.hasNextPage) return
@@ -90,10 +92,11 @@ export default class AlbumBrowser extends React.Component {
   }
 
   getPhotos = () => {
+    this.setState({processing: true})
     const params = {
       first: this.props.loadCount,
       mediaType: this.props.mediaType,
-      sortBy: [MediaLibrary.SortBy.creationTime],
+      sortBy: [MediaLibrary.SortBy.modificationTime],
     }
     if (this.state.after) params.after = this.state.after
     if (!this.state.hasNextPage) return
@@ -107,26 +110,27 @@ export default class AlbumBrowser extends React.Component {
         first: 1,
         album: getPhotos,
         mediaType: this.props.mediaType,
-        sortBy: [MediaLibrary.SortBy.creationTime],
+        sortBy: [MediaLibrary.SortBy.modificationTime],
       }
 
       MediaLibrary.getAssetsAsync(params).then((res) => {
         data.assets = res.assets
         data.getPhotos = getPhotos
         const value = this.state.albumList
-        if(value[index]?.assets?.length){
-          value[index] = data
-          this.setState({
-            albumList: value,
-          },()=>{
-            const newTempAlbumData = this.state.albumList.filter((item)=>{
-              return item.assets != 0
-            })
+        value[index] = data
+        this.setState({
+          albumList: value,
+        }, () => {
+          const newTempAlbumData = this.state.albumList.filter((item) => {
+            return item.assets != 0
+          })
+          setTimeout(() => {
             this.setState({
               albumList: newTempAlbumData,
+              processing: false
             })
-          })
-        }
+          },1000)
+        })
       })
     }
   }
@@ -147,7 +151,8 @@ export default class AlbumBrowser extends React.Component {
     } else {
       this.setState({ isEmpty: true })
       data = data.filter((i) => i.assetCount > 0)
-      this.setState({ albumList: data })
+      // this.setState({ albumList: data })
+      // this.state.albumList = data
       for (let i = 0; i < data.length; i++) {
         this.getPhotosSingle(data[i], i)
       }
@@ -303,7 +308,7 @@ export default class AlbumBrowser extends React.Component {
         numColumns={2}
         key={this.state.numColumns}
         renderItem={this.renderList}
-        keyExtractor={(_, index) => index}
+        keyExtractor={(item, index) => item.id}
         onEndReachedThreshold={0.5}
         ListEmptyComponent={
           this.state.isEmpty ? (
@@ -340,6 +345,7 @@ export default class AlbumBrowser extends React.Component {
   }
 
   render() {
+    if(this.state.processing) return <ActivityIndicator size={'large'} />
     return <View style={styles.container}>{!this.state.isAlbumList ? this.renderImages() : this.renderAlbum()}</View>
   }
 }
