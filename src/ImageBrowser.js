@@ -11,6 +11,7 @@ export default class ImageBrowser extends React.Component {
     emptyStayComponent: null,
     preloaderComponent: <ActivityIndicator size='large' />,
     mediaType: [MediaLibrary.MediaType.photo],
+    numberOfColoumns: 3
   }
 
   state = {
