@@ -16,6 +16,7 @@ export default class AlbumBrowser extends React.Component {
     emptyStayComponent: null,
     preloaderComponent: <ActivityIndicator size='large' />,
     mediaType: [MediaLibrary.MediaType.photo],
+    numberOfColoumns: 3
   }
 
   state = {
@@ -41,7 +42,7 @@ export default class AlbumBrowser extends React.Component {
 
    UNSAFE_componentWillReceiveProps(newProps) {
     if (newProps.inDetailAlbum !== undefined && !newProps.inDetailAlbum) {
-      this.setState({ isAlbumList: true, processing: true, after: null, hasNextPage: true, photos: [], isEmpty: false, selected: []})
+      this.setState({ isAlbumList: true, after: null, hasNextPage: true, photos: [], isEmpty: false, selected: []})
     }
   }
 
@@ -118,19 +119,16 @@ export default class AlbumBrowser extends React.Component {
         data.getPhotos = getPhotos
         const value = this.state.albumList
         value[index] = data
-        this.setState({
-          albumList: value,
-        }, () => {
-          const newTempAlbumData = this.state.albumList.filter((item) => {
-            return item.assets != 0
-          })
-          setTimeout(() => {
-            this.setState({
-              albumList: newTempAlbumData,
-              processing: false
-            })
-          },1000)
+        this.state.albumList = value
+        const newTempAlbumData = this.state.albumList.filter((item) => {
+          return item.assets != 0
         })
+        setTimeout(() => {
+          this.setState({
+            albumList: newTempAlbumData,
+            processing: false
+          })
+        },1000)
       })
     }
   }
@@ -262,7 +260,7 @@ export default class AlbumBrowser extends React.Component {
     return (
       <FlatList
         data={this.state.photos}
-        numColumns={3}
+        numColumns={this.props.numberOfColoumns}
         key={2}
         renderItem={this.renderImageTile}
         keyExtractor={(_, index) => index}
