@@ -26,7 +26,7 @@ export default class ImageBrowser extends React.Component {
   }
 
   async componentDidMount() {
-    this.setState({ numColumns: 3 })
+    this.setState({ numColumns: this.props.numberOfColoumns })
     this.getPhotos()
   }
 
@@ -52,7 +52,7 @@ export default class ImageBrowser extends React.Component {
     const params = {
       first: this.props.loadCount,
       mediaType: this.props.mediaType,
-      sortBy: [MediaLibrary.SortBy.creationTime],
+      sortBy: [MediaLibrary.SortBy.modificationTime]
     }
     if (this.state.after) params.after = this.state.after
     if (!this.state.hasNextPage) return
@@ -74,7 +74,7 @@ export default class ImageBrowser extends React.Component {
   }
 
   getItemLayout = (data, index) => {
-    const length = width / 4
+    const length = width / this.props.numberOfColoumns
     return { length, offset: length * index, index }
   }
 
@@ -117,11 +117,11 @@ export default class ImageBrowser extends React.Component {
   renderImages() {
     return (
       <FlatList
-        data={this.state.photos}
-        numColumns={3}
-        key={this.state.numColumns}
+        data={this.state?.photos}
+        numColumns={this.props.numberOfColoumns}
+        key={this.state.numberOfColoumns}
         renderItem={this.renderImageTile}
-        keyExtractor={(_, index) => index}
+        keyExtractor={(item) => `${item.id}`}
         onEndReached={() => this.getPhotos()}
         ListFooterComponent={this.renderFooter}
         onEndReachedThreshold={0.5}
@@ -152,7 +152,7 @@ export default class ImageBrowser extends React.Component {
             this.renderPreloader()
           )
         }
-        initialNumToRender={24}
+        initialNumToRender={this.props?.numberOfColoumns * 4}
         getItemLayout={this.getItemLayout}
       />
     )
