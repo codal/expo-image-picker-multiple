@@ -158,7 +158,7 @@ export default class AlbumBrowser extends React.Component {
   }
 
   getItemLayout = (data, index) => {
-    const length = width / 4
+    const length = width / 3
     return { length, offset: length * index, index }
   }
 
@@ -263,9 +263,12 @@ export default class AlbumBrowser extends React.Component {
         numColumns={this.props.numberOfColoumns}
         key={2}
         renderItem={this.renderImageTile}
-        keyExtractor={(_, index) => index}
+        keyExtractor={(item) => `${item.id}`}
         ListFooterComponent={this.renderFooter}
         onEndReachedThreshold={0.5}
+        onEndReached={() => {
+          this.getPhotosDetail(this.state.selectedAlbum)
+        }}
         ListEmptyComponent={
           this.state.isEmpty ? (
             <View
