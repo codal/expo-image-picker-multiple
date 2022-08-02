@@ -301,7 +301,10 @@ export default class AlbumBrowser extends React.Component {
       />
     )
   }
-
+  getAlbumItemLayout = (data, index) => {
+    const length = width / 2
+    return { length, offset: length * index, index }
+  }
   renderAlbum() {
     return (
       <FlatList
@@ -309,7 +312,7 @@ export default class AlbumBrowser extends React.Component {
         numColumns={2}
         key={this.state.numColumns}
         renderItem={this.renderList}
-        keyExtractor={(item, index) => item.id}
+        keyExtractor={(item, index) => `${item.id}`}
         onEndReachedThreshold={0.5}
         ListEmptyComponent={
           this.state.isEmpty ? (
@@ -339,7 +342,7 @@ export default class AlbumBrowser extends React.Component {
           )
         }
         initialNumToRender={24}
-        getItemLayout={this.getItemLayout}
+        getItemLayout={this.getAlbumItemLayout}
         ListFooterComponent={this.renderFooter}
       />
     )

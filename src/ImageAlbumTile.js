@@ -1,43 +1,23 @@
 import React from 'react'
-import { Dimensions, ImageBackground, TouchableHighlight, View, Text } from 'react-native'
-import { Colors } from '../../../src/config/keys'
-import { styles } from '../../../src/views/PostCard/styles'
-import Icon from '../../../src/components/icons/Icon'
+import { Dimensions, ImageBackground, TouchableHighlight, ActivityIndicator, View } from 'react-native'
 
 const { width } = Dimensions.get('window')
-const renderTime = (value) => {
-  const sec = parseInt(value, 10) // convert value to number if it's string
-  let hours = Math.floor(sec / 3600) // get hours
-  let minutes = Math.floor((sec - hours * 3600) / 60) // get minutes
-  let seconds = sec - hours * 3600 - minutes * 60 //  get seconds
-  // add 0 if value < 10; Example: 2 => 02
-  if (hours < 10) {
-    hours = '0' + hours
-  }
-  if (minutes < 10) {
-    minutes = '0' + minutes
-  }
-  if (seconds < 10) {
-    seconds = '0' + seconds
-  }
-
-  return hours > 0 ? `${hours}:${minutes}:${seconds}` : `${minutes}:${seconds}`
-}
 
 class ImageTile extends React.PureComponent {
+  state = {
+    loader: false
+  }
   render() {
     const {
       item,
-      index,
       selected,
       selectImage,
-      selectedItemNumber,
-      renderSelectedComponent,
       renderExtraComponent,
       itemdata,
     } = this.props
+
     if (!item) return null
-    const { mediaType, duration = '' } = item
+
 
     return (
       <TouchableHighlight
@@ -51,9 +31,29 @@ class ImageTile extends React.PureComponent {
           imageStyle={{
             borderRadius: 4,
             opacity: selected ? 0.8 : 1,
+
+          }}
+          onLoadStart={() => {
+            this.setState({
+              loader: true
+            })
+          }}
+          onLoadEnd={() => {
+            this.setState({
+              loader: false
+            })
           }}
         >
           {renderExtraComponent && renderExtraComponent(item)}
+          {this.state.loader ? <View style={{
+            position: 'absolute',
+            top: '40%',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 10
+          }}>
+            <ActivityIndicator size={'large'} /></View> : null}
         </ImageBackground>
       </TouchableHighlight>
     )
